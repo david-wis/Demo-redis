@@ -25,8 +25,8 @@
             align-items: center;
             justify-content: center;
             padding: 40px; 
-            height: 600px;
-            width: 75%%;
+            height: 500px;
+            width: 50%;
             box-sizing: border-box; 
         }
         form {
@@ -48,19 +48,25 @@
             background-color: #e74c3c;
             color: #fff;
             border: none;
-            border-radius: 50%;
             cursor: pointer;
             font-size: 40px; 
             font-weight: bold;
+        }
+        #clickbtn{
+            border-radius: 50%;
+        }
+        #submitbtn{
+            border-radius: 6px;
+            height: 100px;
         }
         button:hover {
             background-color: #c0392b;
         }
         #name-display {
             display: none;
-            font-size: 40px; /* Tamaño más grande */
+            font-size: 40px;
             font-weight: bold;
-            margin-top: 20px; /* Tamaño más grande */
+            margin-top: 20px;
         }
         .nameform-container {
             display: flex;
@@ -75,25 +81,53 @@
             <div id="name-display"></div>
             <form id="nameform">
                 <input type="text" placeholder="Nombre" id="nameinput" onkeydown="return event.key != 'Enter';">
+                <button id="submitbtn">Ingresar</button>
             </form>
         </div>
-        <button id="clickbtn">Clickeame</button>
+        <button id="clickbtn" style="display: none;">Clickeame</button>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const button = document.getElementById('clickbtn');
-            button.addEventListener('click', addOne);
+            const clickButton = document.getElementById('clickbtn');
+            clickButton.addEventListener('click', addOne);
+
+            const submitButton = document.getElementById('submitbtn');
+            submitButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                const nameInput = document.getElementById('nameinput').value.trim();
+                if (!nameInput) {
+                    alert("Por favor, ingrese un nombre.");
+                    return;
+                }
+
+                fetch('/api/check_ban', {
+                    method: 'POST',
+                    body: JSON.stringify({ name: nameInput }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.banned) {
+                        alert("Fuiste eliminado y no podes volver a ingresar.");
+                    } else {
+                        document.getElementById('nameform').style.display = 'none';
+                        document.getElementById('name-display').textContent = nameInput;
+                        document.getElementById('name-display').style.display = 'block';
+                        clickButton.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
         });
 
         function addOne(e) {
             e.preventDefault();
-            const name = document.getElementById('nameinput').value.trim();
-
-            if (!name) {
-                alert("Por favor, ingrese un nombre.");
-                return;
-            }
+            const name = document.getElementById('name-display').textContent;
 
             fetch('/api/click', {
                 method: 'POST',
@@ -101,14 +135,16 @@
                 headers: {
                     'Content-Type': 'application/json'
                 }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert("Fuiste eliminado y no podes volver a cliquear.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
             });
-
-            const nameFormContainer = document.getElementById('nameform');
-            nameFormContainer.style.display = 'none';
-
-            const nameDisplay = document.getElementById('name-display');
-            nameDisplay.textContent = name;
-            nameDisplay.style.display = 'block';
         }
     </script>
 </body>

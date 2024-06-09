@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import redis
 
 app = Flask(__name__)
@@ -12,22 +12,43 @@ def index():
 def leaderboard():
     return render_template("leaderboard.html")
 
-@app.route("/api/click", methods=['POST'])  
+@app.route("/api/click", methods=['POST'])
 def click():
-    print(request.json)
     name = request.json.get('name', None)
     if not name:
-        return "Invalid request", 400
+        return jsonify({'error': 'Invalid request'}), 400
+    if r.sismember('banned_users', name):
+        return jsonify({'error': 'User is banned'}), 403
     r.zincrby('leaderboard', 1, f'clicks:{name}')
-    return "Click registered!"
+    return jsonify({'message': 'Click registered!'})
 
 @app.route("/api/leaderboard")
 def get_leaderboard():
     leaderboard = r.zrevrange('leaderboard', 0, 9, withscores=True)
-    # convert to json
-    return list(leaderboard)
+    return jsonify(leaderboard)
 
 @app.route("/api/reset", methods=['POST'])
 def reset():
     r.flushall()
     return "Leaderboard reset!"
+
+@app.route("/api/remove", methods=['POST'])
+def remove():
+    name = request.json.get('name', None)
+    if not name:
+        return jsonify({'error': 'Invalid request'}), 400
+    r.zrem('leaderboard', f'clicks:{name}')
+    r.sadd('banned_users', name)
+    return "User removed and banned from leaderboard!"
+
+@app.route("/api/check_ban", methods=['POST'])
+def check_ban():
+    name = request.json.get('name', None)
+    if not name:
+        return jsonify({'error': 'Invalid request'}), 400
+    if r.sismember('banned_users', name):
+        return jsonify({'banned': True}), 403
+    return jsonify({'banned': False})
+
+if __name__ == "__main__":
+    app.run(debug=True)
