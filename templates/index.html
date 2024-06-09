@@ -1,14 +1,85 @@
 <!DOCTYPE html>
 <html>
-    <head></head>
-    <body>
-        <div>
-            <form>
-                <input type="text" placeholder="nombre" id="nameinput" value="yo">
-                <button id="clickbtn">Clickeame</button>
+<head>
+    <title>Formulario de Click</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style>
+        * {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .form-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px; 
+            height: 600px;
+            width: 75%%;
+            box-sizing: border-box; 
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="text"] {
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 24px; 
+            margin-bottom: 20px; 
+        }
+        button {
+            width: 300px;
+            height: 300px;
+            margin-top: 50px;
+            background-color: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 40px; 
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #c0392b;
+        }
+        #name-display {
+            display: none;
+            font-size: 40px; /* Tamaño más grande */
+            font-weight: bold;
+            margin-top: 20px; /* Tamaño más grande */
+        }
+        .nameform-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="nameform-container">
+            <div id="name-display"></div>
+            <form id="nameform">
+                <input type="text" placeholder="Nombre" id="nameinput" onkeydown="return event.key != 'Enter';">
             </form>
         </div>
-    </body>
+        <button id="clickbtn">Clickeame</button>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const button = document.getElementById('clickbtn');
@@ -16,16 +87,29 @@
         });
 
         function addOne(e) {
-            const name = document.getElementById('nameinput').value;
             e.preventDefault();
+            const name = document.getElementById('nameinput').value.trim();
+
+            if (!name) {
+                alert("Por favor, ingrese un nombre.");
+                return;
+            }
+
             fetch('/api/click', {
                 method: 'POST',
                 body: JSON.stringify({ name }),
                 headers: {
                     'Content-Type': 'application/json'
                 }
-            })
-            // .then(data => { console.log(data.text()); });
+            });
+
+            const nameFormContainer = document.getElementById('nameform');
+            nameFormContainer.style.display = 'none';
+
+            const nameDisplay = document.getElementById('name-display');
+            nameDisplay.textContent = name;
+            nameDisplay.style.display = 'block';
         }
     </script>
+</body>
 </html>

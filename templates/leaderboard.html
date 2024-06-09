@@ -1,40 +1,118 @@
 <!DOCTYPE html>
 <html>
-    <head></head>
-    <body>
-        <div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Puntaje</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-        </div>
-    
-        <script>
-            // Poll for the leaderboard data every 5 seconds
-            setInterval(() => {
-                fetch('/api/leaderboard')
-                    .then(response => response.json())
-                    .then((data) => {
-                        const leaderboard = document.querySelector('tbody');
-                        leaderboard.innerHTML = '';
-                        data.forEach(row => {
-                            const tr = document.createElement('tr');
-                            const td1 = document.createElement('td');
-                            const td2 = document.createElement('td');
-                            let [name, score] = row;
-                            td1.textContent = name.split(':')[1];
-                            td2.textContent = score;
-                            tr.appendChild(td1);
-                            tr.appendChild(td2);
-                            leaderboard.appendChild(tr);
-                        });
-                    });
-            }, 500);
-        </script>
-    </body>
+<head>
+    <title>Leaderboard</title>
+    <style>
+        * {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 20px; 
+            text-align: left;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        thead {
+            background-color: #e74c3c;
+            color: #ffffff;
+        }
+        thead th {
+            padding: 15px;
+        }
+        tbody td {
+            padding: 15px;
+            border-bottom: 1px solid #dddddd;
+        }
+        tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+        tbody tr:last-of-type {
+            border-bottom: 2px solid #e74c3c; 
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Puntaje</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to update the leaderboard
+        function updateLeaderboard(data) {
+            const leaderboard = document.querySelector('tbody');
+            leaderboard.innerHTML = '';
+            data.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                const tdRank = document.createElement('td');
+                const tdName = document.createElement('td');
+                const tdScore = document.createElement('td');
+                
+                let [name, score] = row;
+                
+                tdRank.textContent = index + 1; // Rank starts from 1
+                tdName.textContent = name.split(':')[1];
+                tdScore.textContent = score;
+
+                tr.appendChild(tdRank);
+                tr.appendChild(tdName);
+                tr.appendChild(tdScore);
+                
+                leaderboard.appendChild(tr);
+            });
+        }
+
+        // Poll for the leaderboard data every 0.5 seconds
+        setInterval(() => {
+            fetch('/api/leaderboard')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        updateLeaderboard(data);
+                    } else {
+                        console.error('Unexpected data format:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+        }, 500); // Poll every 0.5 seconds
+    </script>
+</body>
 </html>
